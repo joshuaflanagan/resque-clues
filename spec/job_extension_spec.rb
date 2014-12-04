@@ -82,8 +82,8 @@ describe Resque::Plugins::Clues::JobExtension do
       end
 
       context "when encountering a job that modifies clues metadata at runtime then fails" do
-        before {Resque::Plugins::Clues::Runtime.clues_metadata = {}}
-        let(:clues_metadata) {Resque::Plugins::Clues::Runtime.clues_metadata}
+        before {Resque::Plugins::Clues::Runtime.expose_metadata_to_job({})}
+        let(:clues_metadata) {Resque::Plugins::Clues::Runtime.job_copy_of_metadata}
         it "should publish a perform_finished event that includes the modified metadta" do
           clues_metadata[:injection] = true
           job.fail(Exception.new)

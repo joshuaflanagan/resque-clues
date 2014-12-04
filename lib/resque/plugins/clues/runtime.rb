@@ -13,15 +13,15 @@ module Resque
           ##
           # Access to the current thread's clues metadata
           # hash.
-          def clues_metadata
+          def job_copy_of_metadata
             get_thread_local(:clues_metadata) || {}
           end
 
           ##
           # Specify the current thread's clues metadata
           # hash.
-          def clues_metadata=(hash)
-            set_thread_local(:clues_metadata, hash.dup)
+          def expose_metadata_to_job(metadata)
+            set_thread_local(:clues_metadata, metadata.dup)
           end
 
           ##
@@ -35,10 +35,10 @@ module Resque
           # metadata into an original clues_metadata hash,
           # ignoring anything that would overwrite existing
           # metadata and converting keys to strings.
-          def merge!(original)
-            clues_metadata.keys.each do |key|
+          def store_changes_from_job(original)
+            job_copy_of_metadata.keys.each do |key|
               unless original.has_key?(key.to_s)
-                original[key.to_s] = clues_metadata[key]
+                original[key.to_s] = job_copy_of_metadata[key]
               end
             end
           end
@@ -64,7 +64,7 @@ module Resque
         # will be published with the resque clues
         # events.
         def clues_metadata
-          Clues::Runtime.clues_metadata
+          Clues::Runtime.job_copy_of_metadata
         end
       end
     end
