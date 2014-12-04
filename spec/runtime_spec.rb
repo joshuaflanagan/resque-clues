@@ -8,26 +8,36 @@ module Resque
         let(:original_metadata) { {'a' => 1} }
 
         describe "class instance methods" do
-          before { Runtime.expose_metadata_to_job original_metadata }
-
           describe "#job_copy_of_metadata" do
-            it "should allow reading the metadata exposed by the runtime to the job" do
-              expect(Runtime.job_copy_of_metadata).to eq(original_metadata)
+            context "when job enqueued with resque clues metadata" do
+              before { Runtime.expose_metadata_to_job original_metadata }
+              it "should allow reading the metadata exposed by the runtime to the job" do
+                expect(Runtime.job_copy_of_metadata).to eq(original_metadata)
+              end
+
+              it "should constrain visibility to the executing thread" do
+                Thread.new {Runtime.expose_metadata_to_job({'b' => 2})}.join
+                expect(Runtime.job_copy_of_metadata.keys).to_not include('b')
+              end
+
+              it "should dupe the metadata so that its not directly modifiable" do
+                Runtime.job_copy_of_metadata['b'] = 2
+                expect(Runtime.job_copy_of_metadata.keys).to match_array(['a', 'b'])
+                expect(original_metadata.keys).to match_array(['a'])
+              end
             end
 
-            it "should constrain visibility to the executing thread" do
-              Thread.new {Runtime.expose_metadata_to_job({'b' => 2})}.join
-              expect(Runtime.job_copy_of_metadata.keys).to_not include('b')
-            end
-
-            it "should dupe the metadata so that its not directly modifiable" do
-              Runtime.job_copy_of_metadata['b'] = 2
-              expect(Runtime.job_copy_of_metadata.keys).to match_array(['a', 'b'])
-              expect(original_metadata.keys).to match_array(['a'])
+            context "when job enqueued without resque clues metadata" do
+              it "raises if clues metadata accessed at runtime" do
+                expect{
+                  Runtime.job_copy_of_metadata
+                }.to raise_error Runtime::ContextNotEstablished
+              end
             end
           end
 
           describe "#store_changes_from_job" do
+            before { Runtime.expose_metadata_to_job original_metadata }
             it "should merge changes the job made back to the hash used for rescue clues events" do
               Runtime.job_copy_of_metadata['b'] = 2
               Runtime.store_changes_from_job(original_metadata)
@@ -49,6 +59,7 @@ module Resque
         end
 
         describe "mixin methods" do
+          before { Runtime.expose_metadata_to_job original_metadata }
           subject {Object.new.extend(Runtime)}
 
           describe "#clues_metadata" do

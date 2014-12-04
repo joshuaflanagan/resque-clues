@@ -14,7 +14,7 @@ module Resque
           # Access to the current thread's clues metadata
           # hash.
           def job_copy_of_metadata
-            get_thread_local(:clues_metadata) || {}
+            get_thread_local(:clues_metadata) or raise ContextNotEstablished
           end
 
           ##
