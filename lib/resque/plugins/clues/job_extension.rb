@@ -29,8 +29,11 @@ module Resque
             if Clues.configured? and payload['clues_metadata']
               Clues.event_publisher.publish(:perform_started, Clues.now, queue, payload['clues_metadata'], payload['class'], *payload['args'])
               @perform_started = Time.now
-              _base_perform.tap do 
+              _base_perform.tap do |return_value|
                 payload['clues_metadata']['time_to_perform'] = Clues.time_delta_since(@perform_started)
+                if Thread.current.keys.include?(Clues::RETURN_VALUE_KEY)
+                  payload['clues_metadata']['returned'] = Thread.current[Clues::RETURN_VALUE_KEY]
+                end
                 Clues.event_publisher.publish(:perform_finished, Clues.now, queue, payload['clues_metadata'], payload['class'], *payload['args'])
               end
             else

@@ -1,5 +1,6 @@
 require 'resque'
 require 'resque/plugins/clues/util'
+require 'resque/plugins/clues/instrumented'
 require 'resque/plugins/clues/queue_extension'
 require 'resque/plugins/clues/job_extension'
 require 'resque/plugins/clues/event_publisher'
@@ -47,6 +48,8 @@ module Resque
           end
         end
       end
+
+      RETURN_VALUE_KEY = :_resque_clues_returned
     end
   end
 end

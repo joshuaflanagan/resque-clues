@@ -47,6 +47,19 @@ describe Resque::Plugins::Clues::JobExtension do
         @job.perform
         verify_event :perform_finished do |metadata|
           metadata['time_to_perform'].nil?.should == false
+          metadata['returned'].should be_nil # worker is not instrumented
+        end
+      end
+
+      context "when the worker is instrumented by resque clues" do
+        it "should publish a perform_finished event that includes the return value" do
+          stub_const("TestWorker", InstrumentedTestWorker)
+          @job.perform
+
+          verify_event :perform_finished do |metadata|
+            metadata['time_to_perform'].nil?.should == false
+            metadata['returned'].should == "RETURN VALUE"
+          end
         end
       end
     end
