@@ -52,8 +52,8 @@ describe 'end-to-end integration' do
   end
 
   def work
-    timeout(0.2) do
-      @worker.work(0.1)
+    Timeout.timeout(0.2) do
+      @worker.work(0)
     end
   end
 

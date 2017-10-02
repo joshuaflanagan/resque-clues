@@ -1,5 +1,4 @@
 require 'rspec'
-require 'pry'
 require 'resque-clues'
 require 'test_worker'
 require 'test_publisher'
@@ -9,14 +8,20 @@ def base_item(overrides={})
 end
 
 RSpec.configure do |config|
+  config.expect_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
+  config.mock_with :rspec do |mocks|
+    mocks.syntax = :should
+  end
   config.before(:each) do
     reset_redis
   end
 end
 
 def reset_redis
-  Resque.redis.select 15
-  Resque.redis.flushdb
+  Resque.redis.redis.select 15
+  Resque.redis.redis.flushdb
 end
 
 def verify_event(event_type, opts={event_index: -1})

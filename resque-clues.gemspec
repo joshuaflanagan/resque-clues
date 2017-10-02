@@ -21,7 +21,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'multi_json', '~> 1.7.4'
   gem.add_development_dependency 'rake', '~> 0.9.2.2'
   gem.add_development_dependency 'rspec'
-  gem.add_development_dependency 'pry'
-  gem.add_development_dependency 'pry-debugger'
   gem.add_development_dependency 'cane'
 end
